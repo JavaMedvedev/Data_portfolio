@@ -1,0 +1,816 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "factoryName": {
+            "type": "string",
+            "metadata": "Data Factory Name",
+            "defaultValue": "DataFactoryTech"
+        },
+        "connectiontoblob_connectionString": {
+            "type": "secureString",
+            "metadata": "Secure string for 'connectionString' of 'connectiontoblob'"
+        },
+        "connectiontowarehouse_connectionString": {
+            "type": "secureString",
+            "metadata": "Secure string for 'connectionString' of 'connectiontowarehouse'"
+        },
+        "destinationblob_connectionString": {
+            "type": "secureString",
+            "metadata": "Secure string for 'connectionString' of 'destinationblob'"
+        },
+        "ToDatabaseTech_connectionString": {
+            "type": "secureString",
+            "metadata": "Secure string for 'connectionString' of 'ToDatabaseTech'"
+        },
+        "linkedservice_tocopyfrom_datasettocopyfrom_connectionString": {
+            "type": "secureString",
+            "metadata": "Secure string for 'connectionString' of 'linkedservice_tocopyfrom_datasettocopyfrom'"
+        },
+        "linkedservice_tocopyto_datasettocopyto_connectionString": {
+            "type": "secureString",
+            "metadata": "Secure string for 'connectionString' of 'linkedservice_tocopyto_datasettocopyto'"
+        },
+        "linktodatasettocopyto_connectionString": {
+            "type": "secureString",
+            "metadata": "Secure string for 'connectionString' of 'linktodatasettocopyto'"
+        },
+        "AzureBlobStorage1_connectionString": {
+            "type": "secureString",
+            "metadata": "Secure string for 'connectionString' of 'AzureBlobStorage1'"
+        },
+        "LinkedServicetoLake_accountKey": {
+            "type": "secureString",
+            "metadata": "Secure string for 'accountKey' of 'LinkedServicetoLake'"
+        },
+        "LinkedServicetoLake_properties_typeProperties_url": {
+            "type": "string",
+            "defaultValue": "https://storetech.dfs.core.windows.net"
+        }
+    },
+    "variables": {
+        "factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+    },
+    "resources": [
+        {
+            "name": "[concat(parameters('factoryName'), '/SourceDataset_k1a')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "connectiontowarehouse",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "AzureSqlDWTable",
+                "schema": [
+                    {
+                        "name": "ID",
+                        "type": "int",
+                        "precision": 10,
+                        "scale": 255
+                    },
+                    {
+                        "name": "Fname",
+                        "type": "varchar",
+                        "precision": 255,
+                        "scale": 255
+                    },
+                    {
+                        "name": "Lname",
+                        "type": "varchar",
+                        "precision": 255,
+                        "scale": 255
+                    }
+                ],
+                "typeProperties": {
+                    "tableName": "[[dbo].[TableOne]"
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/connectiontowarehouse')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/DestinationDataset_k1a')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "destinationblob",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "DelimitedText",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobStorageLocation",
+                        "fileName": "[[dbo].[TableOne]",
+                        "container": "storetech"
+                    },
+                    "columnDelimiter": ",",
+                    "escapeChar": "\\",
+                    "firstRowAsHeader": false,
+                    "quoteChar": "\""
+                },
+                "schema": [
+                    {
+                        "type": "String"
+                    },
+                    {
+                        "type": "String"
+                    },
+                    {
+                        "type": "String"
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/destinationblob')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/set_databasetocopyto_assinkdataset')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "linkedservice_tocopyto_datasettocopyto",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "AzureSqlTable",
+                "schema": [
+                    {
+                        "name": "ID",
+                        "type": "int",
+                        "precision": 10
+                    },
+                    {
+                        "name": "Fname",
+                        "type": "varchar"
+                    },
+                    {
+                        "name": "Lname",
+                        "type": "varchar"
+                    }
+                ],
+                "typeProperties": {
+                    "tableName": "[[dbo].[tabletocopyto]"
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/linkedservice_tocopyto_datasettocopyto')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/Set_databasetocopyfrom_as_source')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "linkedservice_tocopyfrom_datasettocopyfrom",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "AzureSqlTable",
+                "schema": [
+                    {
+                        "name": "ID",
+                        "type": "int",
+                        "precision": 10
+                    },
+                    {
+                        "name": "Fname",
+                        "type": "varchar"
+                    },
+                    {
+                        "name": "Lname",
+                        "type": "varchar"
+                    }
+                ],
+                "typeProperties": {
+                    "tableName": "[[dbo].[tabletocopyfrom]"
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/linkedservice_tocopyfrom_datasettocopyfrom')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/BlobBank')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "AzureBlobStorage1",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "DelimitedText",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobStorageLocation",
+                        "fileName": "bank_additional_full_prep.csv",
+                        "container": "blobtech"
+                    },
+                    "columnDelimiter": ",",
+                    "escapeChar": "\\",
+                    "quoteChar": "\""
+                },
+                "schema": [
+                    {
+                        "type": "String"
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/copydata')]",
+            "type": "Microsoft.DataFactory/factories/pipelines",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "activities": [
+                    {
+                        "name": "Copy_k1a",
+                        "type": "Copy",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [
+                            {
+                                "name": "Source",
+                                "value": "[[dbo].[TableOne]"
+                            },
+                            {
+                                "name": "Destination",
+                                "value": "storetech//[dbo].[TableOne]"
+                            }
+                        ],
+                        "typeProperties": {
+                            "source": {
+                                "type": "SqlDWSource"
+                            },
+                            "sink": {
+                                "type": "DelimitedTextSink",
+                                "storeSettings": {
+                                    "type": "AzureBlobStorageWriteSettings"
+                                },
+                                "formatSettings": {
+                                    "type": "DelimitedTextWriteSettings",
+                                    "quoteAllText": true,
+                                    "fileExtension": ".txt"
+                                }
+                            },
+                            "enableStaging": false
+                        },
+                        "inputs": [
+                            {
+                                "referenceName": "SourceDataset_k1a",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        ],
+                        "outputs": [
+                            {
+                                "referenceName": "DestinationDataset_k1a",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        ]
+                    }
+                ],
+                "annotations": []
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/SourceDataset_k1a')]",
+                "[concat(variables('factoryId'), '/datasets/DestinationDataset_k1a')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/Pipeline Copy Data')]",
+            "type": "Microsoft.DataFactory/factories/pipelines",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "activities": [
+                    {
+                        "name": "Copy Data to tabletocopyto",
+                        "type": "Copy",
+                        "dependsOn": [
+                            {
+                                "activity": "Truncatabletocopyto",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "source": {
+                                "type": "AzureSqlSource"
+                            },
+                            "sink": {
+                                "type": "AzureSqlSink"
+                            },
+                            "enableStaging": false
+                        },
+                        "inputs": [
+                            {
+                                "referenceName": "Set_databasetocopyfrom_as_source",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        ],
+                        "outputs": [
+                            {
+                                "referenceName": "set_databasetocopyto_assinkdataset",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Truncatabletocopyto",
+                        "type": "SqlServerStoredProcedure",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "0.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "storedProcedureName": "[[dbo].[truncatetabletocopyto]"
+                        },
+                        "linkedServiceName": {
+                            "referenceName": "linkedservice_tocopyto_datasettocopyto",
+                            "type": "LinkedServiceReference"
+                        }
+                    }
+                ],
+                "annotations": []
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/Set_databasetocopyfrom_as_source')]",
+                "[concat(variables('factoryId'), '/datasets/set_databasetocopyto_assinkdataset')]",
+                "[concat(variables('factoryId'), '/linkedServices/linkedservice_tocopyto_datasettocopyto')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/Get Metadata Pipeline')]",
+            "type": "Microsoft.DataFactory/factories/pipelines",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "activities": [
+                    {
+                        "name": "Get Metadata1",
+                        "type": "GetMetadata",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "dataset": {
+                                "referenceName": "BlobBank",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            },
+                            "fieldList": [
+                                "itemName",
+                                "lastModified",
+                                "size"
+                            ],
+                            "storeSettings": {
+                                "type": "AzureBlobStorageReadSettings",
+                                "recursive": true
+                            },
+                            "formatSettings": {
+                                "type": "DelimitedTextReadSettings"
+                            }
+                        }
+                    },
+                    {
+                        "name": "Stored Procedure1",
+                        "type": "SqlServerStoredProcedure",
+                        "dependsOn": [
+                            {
+                                "activity": "Get Metadata1",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "storedProcedureName": "[[dbo].[truncatetabletocopyto]",
+                            "storedProcedureParameters": {
+                                "Name": {
+                                    "value": "Value",
+                                    "type": "Type"
+                                }
+                            }
+                        },
+                        "linkedServiceName": {
+                            "referenceName": "linkedservice_tocopyto_datasettocopyto",
+                            "type": "LinkedServiceReference"
+                        }
+                    }
+                ],
+                "annotations": []
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/BlobBank')]",
+                "[concat(variables('factoryId'), '/linkedServices/linkedservice_tocopyto_datasettocopyto')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/Lookup Activity')]",
+            "type": "Microsoft.DataFactory/factories/pipelines",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "activities": [
+                    {
+                        "name": "Get Metadata1",
+                        "type": "GetMetadata",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "dataset": {
+                                "referenceName": "BlobBank",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            },
+                            "fieldList": [
+                                "itemName",
+                                "lastModified",
+                                "size"
+                            ],
+                            "storeSettings": {
+                                "type": "AzureBlobStorageReadSettings",
+                                "recursive": true
+                            },
+                            "formatSettings": {
+                                "type": "DelimitedTextReadSettings"
+                            }
+                        }
+                    },
+                    {
+                        "name": "Lookup1",
+                        "type": "Lookup",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "source": {
+                                "type": "AzureSqlSource",
+                                "sqlReaderStoredProcedureName": "[[dbo].[truncatetabletocopyto]"
+                            },
+                            "dataset": {
+                                "referenceName": "set_databasetocopyto_assinkdataset",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        }
+                    },
+                    {
+                        "name": "If Condition1",
+                        "type": "IfCondition",
+                        "dependsOn": [
+                            {
+                                "activity": "Get Metadata1",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            },
+                            {
+                                "activity": "Lookup1",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "userProperties": [],
+                        "typeProperties": {
+                            "expression": {
+                                "value": "@greater(\nactivity('Get Metadata1').output.lastModified,\nactivity('Lookup1').output.firstRow.ExecutionDate\n)",
+                                "type": "Expression"
+                            },
+                            "ifFalseActivities": [
+                                {
+                                    "name": "Wait_False",
+                                    "type": "Wait",
+                                    "dependsOn": [],
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "waitTimeInSeconds": 1
+                                    }
+                                }
+                            ],
+                            "ifTrueActivities": [
+                                {
+                                    "name": "Wait_True",
+                                    "type": "Wait",
+                                    "dependsOn": [],
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "waitTimeInSeconds": 1
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "annotations": []
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/BlobBank')]",
+                "[concat(variables('factoryId'), '/datasets/set_databasetocopyto_assinkdataset')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/integrationRuntime1')]",
+            "type": "Microsoft.DataFactory/factories/integrationRuntimes",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "type": "SelfHosted",
+                "typeProperties": {}
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/connectiontoblob')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "annotations": [],
+                "type": "AzureBlobStorage",
+                "typeProperties": {
+                    "connectionString": "[parameters('connectiontoblob_connectionString')]"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/connectiontowarehouse')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "annotations": [],
+                "type": "AzureSqlDW",
+                "typeProperties": {
+                    "connectionString": "[parameters('connectiontowarehouse_connectionString')]"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/destinationblob')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "annotations": [],
+                "type": "AzureBlobStorage",
+                "typeProperties": {
+                    "connectionString": "[parameters('destinationblob_connectionString')]"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/ToDatabaseTech')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "annotations": [],
+                "type": "AzureSqlDatabase",
+                "typeProperties": {
+                    "connectionString": "[parameters('ToDatabaseTech_connectionString')]"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/linkedservice_tocopyfrom_datasettocopyfrom')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "annotations": [],
+                "type": "AzureSqlDatabase",
+                "typeProperties": {
+                    "connectionString": "[parameters('linkedservice_tocopyfrom_datasettocopyfrom_connectionString')]"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/linkedservice_tocopyto_datasettocopyto')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "annotations": [],
+                "type": "AzureSqlDatabase",
+                "typeProperties": {
+                    "connectionString": "[parameters('linkedservice_tocopyto_datasettocopyto_connectionString')]"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/linktodatasettocopyto')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "annotations": [],
+                "type": "AzureBlobStorage",
+                "typeProperties": {
+                    "connectionString": "[parameters('linktodatasettocopyto_connectionString')]"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/AzureBlobStorage1')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "annotations": [],
+                "type": "AzureBlobStorage",
+                "typeProperties": {
+                    "connectionString": "[parameters('AzureBlobStorage1_connectionString')]"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/BankMarketing')]",
+            "type": "Microsoft.DataFactory/factories/pipelines",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "activities": [
+                    {
+                        "name": "CopyData",
+                        "type": "Copy",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "source": {
+                                "type": "DelimitedTextSource",
+                                "storeSettings": {
+                                    "type": "AzureBlobStorageReadSettings",
+                                    "recursive": true
+                                },
+                                "formatSettings": {
+                                    "type": "DelimitedTextReadSettings"
+                                }
+                            },
+                            "sink": {
+                                "type": "DelimitedTextSink",
+                                "storeSettings": {
+                                    "type": "AzureBlobFSWriteSettings"
+                                },
+                                "formatSettings": {
+                                    "type": "DelimitedTextWriteSettings",
+                                    "quoteAllText": true,
+                                    "fileExtension": ".txt"
+                                }
+                            },
+                            "enableStaging": false
+                        },
+                        "inputs": [
+                            {
+                                "referenceName": "BlobBank",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        ],
+                        "outputs": [
+                            {
+                                "referenceName": "ToLakeFile",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        ]
+                    },
+                    {
+                        "name": "ML Batch Execution1",
+                        "type": "AzureMLBatchExecution",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {}
+                    }
+                ],
+                "annotations": []
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/BlobBank')]",
+                "[concat(variables('factoryId'), '/datasets/ToLakeFile')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/LinkedServicetoLake')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "annotations": [],
+                "type": "AzureBlobFS",
+                "typeProperties": {
+                    "url": "[parameters('LinkedServicetoLake_properties_typeProperties_url')]",
+                    "accountKey": {
+                        "type": "SecureString",
+                        "value": "[parameters('LinkedServicetoLake_accountKey')]"
+                    }
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/ToLakeFile')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "LinkedServicetoLake",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "DelimitedText",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobFSLocation",
+                        "fileName": "bank_additional_full_prep.csv",
+                        "fileSystem": "blobtech"
+                    },
+                    "columnDelimiter": ",",
+                    "escapeChar": "\\",
+                    "firstRowAsHeader": true,
+                    "quoteChar": "\""
+                },
+                "schema": [
+                    {
+                        "name": "age;job;marital;education;housing_loan;personal_loan;contact;contact_month;contact_day_of_week;duration;campaign;previous;poutcome;emp.var.rate;cons.price.idx;cons.conf.idx;euribor3m;y",
+                        "type": "String"
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/LinkedServicetoLake')]"
+            ]
+        }
+    ]
+}
