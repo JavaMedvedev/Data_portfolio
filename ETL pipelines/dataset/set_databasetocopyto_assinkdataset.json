@@ -1,0 +1,30 @@
+{
+	"name": "set_databasetocopyto_assinkdataset",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "linkedservice_tocopyto_datasettocopyto",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "ID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Fname",
+				"type": "varchar"
+			},
+			{
+				"name": "Lname",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"tableName": "[dbo].[tabletocopyto]"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

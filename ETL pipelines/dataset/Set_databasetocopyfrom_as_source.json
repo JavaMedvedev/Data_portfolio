@@ -1,0 +1,30 @@
+{
+	"name": "Set_databasetocopyfrom_as_source",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "linkedservice_tocopyfrom_datasettocopyfrom",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "ID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Fname",
+				"type": "varchar"
+			},
+			{
+				"name": "Lname",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"tableName": "[dbo].[tabletocopyfrom]"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

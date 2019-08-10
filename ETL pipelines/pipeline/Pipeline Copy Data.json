@@ -1,0 +1,70 @@
+{
+	"name": "Pipeline Copy Data",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy Data to tabletocopyto",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Truncatabletocopyto",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource"
+					},
+					"sink": {
+						"type": "AzureSqlSink"
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "Set_databasetocopyfrom_as_source",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "set_databasetocopyto_assinkdataset",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Truncatabletocopyto",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[truncatetabletocopyto]"
+				},
+				"linkedServiceName": {
+					"referenceName": "linkedservice_tocopyto_datasettocopyto",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
